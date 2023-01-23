@@ -16,6 +16,5 @@
   },
   "dependencies": {
     "autoprefixer": "10.4.5",
-    "jquery": "^3.6.3"
   }
 }
