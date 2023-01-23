@@ -39,7 +39,7 @@
               </div>
               <div class="card pokemon__card p-4">
                 <h3><strong>Types totaux</strong></h3>
-                <h2>{{ pokemountTypes }}</h2>
+                <h2 v-if="pokemonTypes">{{ pokemonTypes }}</h2>
               </div>          
             </div>
           </div>
@@ -118,7 +118,7 @@
             items: [],
             details: [],
             pokemonCount: 0,
-            pokemonTypes: 0,
+            pokemonTypes: null,
           }
         },
         methods: {
@@ -127,13 +127,37 @@
             let finalRes = await res.json()
             this.items = finalRes
             this.pokemonCount = this.items.results.length
+            this.pokemonTypes =  await this.getTypes(finalRes.results)
 
           },
           async getDetail(url, index){
             const res = await fetch(url)
             let finalRes = await res.json()
             this.details[index] = finalRes          
+          },
+          
+          removeDuplicates(arr) {
+            return arr.filter((item,index) => arr.indexOf(item) === index);
+          },
+
+          async getTypes(items){
+            let types = []
+            await items.forEach( i => {
+              fetch(i.url)
+                .then(r => r.json())
+                .then( d => {
+                  d.types.forEach(t => {
+                    types.push(t.type.name)
+                  })
+                })
+            })
+            setTimeout(() => {
+              this.pokemonTypes = this.removeDuplicates(types).length
+            }, 1000);
+        
+
           }
+
         },
         mounted(){
           this.getData()
