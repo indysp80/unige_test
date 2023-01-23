@@ -8,7 +8,6 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   </head>
   <body>
-
     <header class="main-header p-4">
       <div class="container-fluid">
         <div class="row">
@@ -31,6 +30,7 @@
     <main>
       <div class="container">
         <div id="app">
+          <div v-if="isOpen" class="backdrop" @click="openModal(0)"></div>
           <div v-if="items && items.results" class="row">
             <div class="col d-flex justify-content-center">
               <div class="card pokemon__card p-4">
@@ -46,7 +46,7 @@
           <div class="row">
             <div class="accordion">
               <div class="col-12 accordion-item border-0 p-4" v-if="items && items.results" v-for="(item, index) in items.results" :key="index">
-                <div class="accordion-header pokemon__grid d-flex" type="button" @click="getDetail(item.url, index)" data-bs-toggle="collapse" :data-bs-target=`#collapsePokemon${index}` aria-expanded="false" aria-controls="collapsePokemon">
+                <div class="accordion-header pokemon__grid d-flex" type="button" @click="getDetail(item.url, index), openModal(0)" data-bs-toggle="collapse" :data-bs-target=`#collapsePokemon${index}` aria-expanded="false" aria-controls="collapsePokemon">
                   <div><img src="dist/img/image.png"></div>
                   <div><strong>{{ item.name }}</strong></div>
                   <div class="ms-auto">{{ index + 1 }}</div>
@@ -54,7 +54,7 @@
                 <div class="accordion-collapse collapse" v-if="details[index]" :id=`collapsePokemon${index}`>
                   <div class="row">
                     <div class="col-12">
-                      <ul class="ml-4">
+                      <ul class="pokemon__list">
                         <li class="py-2">Type <span class="pokemon__type mx-2" v-for="type in details[index].types">{{ type.type.name }}</span></li>
                         <li class="py-2">Height <span>{{ details[index].height }} m</span></li>
                         <li class="py-2">Weight <span>{{ details[index].weight }} kg</span></li>
@@ -63,43 +63,28 @@
                   </div>
                   <div class="row">
                     <div class="col-12 text-center">
-                      <button class="btn pokemon__btn" data-bs-toggle="modal" :data-bs-target=`modalPokemon${index}`>See Full card</button>
+                      <button class="btn pokemon__btn" @click="openModal(`modalCustom${index}`)">See Full card</button>
                     </div>
                   </div>
 
-                  <!-- Modal -->
-                  <div class="modal fade" :id=`modalPokemon${index}` tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h1 class="modal-title fs-5" :id=`modalPokemonLabel${index}`>Modal title</h1>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  <div v-if="openedModal === `modalCustom${index}`" class="custom-modal p-4" :id=`modalCustom${index}`>
+                    <div class="container">
+                      <div class="row">
+                        <div class="col-6 d-flex justify-content-center align-items-end">
+                          <img :src="details[index].sprites.front_default" />
                         </div>
-                        <div class="modal-body">
-                          <div class="container">
-                            <div class="row">
-                              <div class="col-6">
-                                <img :src="details[index].sprites.front_default" />
-                              </div>
-                              <div class="col-6">
-                                <h2>{{ item.name }}</h2>
-                                <ul>
-                                  <li class="py-4">Type <span class="pokemon__type mx-2" v-for="type in details[index].types">{{ type.type.name }}</span></li>
-                                  <li class="py-4">Height <span>{{ details[index].height }} m</span></li>
-                                  <li class="py-4">Weight <span>{{ details[index].weight }} kg</span></li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="modal-footer">
+                        <div class="col-6">
+                          <h2><strong>{{ item.name }}</strong></h2>
+                          <ul class="m-0 p-0">
+                            <li class="py-3">Type <span class="pokemon__type mx-2" v-for="type in details[index].types">{{ type.type.name }}</span></li>
+                            <li class="py-3">Height <span>{{ details[index].height }} m</span></li>
+                            <li class="py-3">Weight <span>{{ details[index].weight }} kg</span></li>
+                          </ul>
                         </div>
                       </div>
                     </div>
                   </div>
-
                 </div>
-
               </div>
             </div>
           </div>
@@ -119,6 +104,9 @@
             details: [],
             pokemonCount: 0,
             pokemonTypes: null,
+            openedModal: null,
+            isOpen: false,
+      
           }
         },
         methods: {
@@ -140,6 +128,12 @@
             return arr.filter((item,index) => arr.indexOf(item) === index);
           },
 
+          openModal(modal){
+            this.openedModal = modal
+            this.isOpen = (modal !== 0) ? true: false
+
+          },
+
           async getTypes(items){
             let types = []
             await items.forEach( i => {
@@ -154,7 +148,6 @@
             setTimeout(() => {
               this.pokemonTypes = this.removeDuplicates(types).length
             }, 1000);
-        
 
           }
 
